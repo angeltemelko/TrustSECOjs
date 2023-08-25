@@ -1,0 +1,24 @@
+{
+  "name": "npm-trust-score-script",
+  "version": "1.0.0",
+  "description": "trust score script ",
+  "main": "dist/trustseco-cli.js",
+  "dependencies": {
+    "cli-table3": "^0.6.3",
+    "commander": "^11.0.0",
+    "is-even": "^1.0.0",
+    "is-odd": "^3.0.1",
+    "typescript": "^5.2.2"
+  },
+  "devDependencies": {
+    "@types/node": "^20.5.4"
+  },
+  "scripts": {
+    "build": "tsc src/trustseco-cli.ts --outDir ./dist"
+  },
+  "author": "Angel Temelko",
+  "license": "ISC",
+  "bin": {
+    "trustseco-install": "./dist/trustseco-cli.js"
+  }
+}

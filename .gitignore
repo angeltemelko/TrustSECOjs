@@ -1,0 +1,17 @@
+# Node modules and dependencies
+node_modules/
+
+# Environment variables
+.env
+
+# Log files
+npm-debug.log
+yarn-error.log
+
+# Editor directories
+.idea/
+*.swp
+*.swo
+
+# Dist directory
+dist/
