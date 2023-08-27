@@ -35,7 +35,3 @@ $ trustseco-install [package-name]
 ## Contributing
 
 Contributions to this tool are welcome! Whether it's bug fixes, feature requests, or new ideas, your input is valuable to us. Feel free to raise issues or PRs. Remember, it's a part of the larger TrustSECO initiative, and your contributions help improve the security of the open-source ecosystem.
-
-## License
-
-[MIT](https://choosealicense.com/licenses/mit/)
