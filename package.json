@@ -8,6 +8,7 @@
     "commander": "^11.0.0",
     "is-even": "^1.0.0",
     "is-odd": "^3.0.1",
+    "oo-ascii-tree": "^1.88.0",
     "typescript": "^5.2.2"
   },
   "devDependencies": {
@@ -19,6 +20,6 @@
   "author": "Angel Temelko",
   "license": "ISC",
   "bin": {
-    "trustseco-install": "./dist/trustseco-cli.js"
+    "trustseco": "./dist/trustseco-cli.js"
   }
 }

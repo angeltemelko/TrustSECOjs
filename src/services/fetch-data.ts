@@ -1,5 +1,11 @@
+import { exec } from 'child_process';
+import { promisify } from 'util';
+
+const execAsync = promisify(exec);
+
 import {
   ApiTrustFact,
+  PackageDetailsTransitiveDependencies,
   TrustFact,
   defaultPackage,
 } from '../interfaces/api-interfaces';
@@ -20,16 +26,20 @@ export async function fetchTrustScore(
 }
 
 export async function fetchTrustScoreMock(
-  packageName: string
+  packageName: string,
+  version?: string
 ): Promise<number> {
   return await Promise.resolve((Math.random() * 100) | 0);
 }
 
 export async function fetchTrustFacts(
   packageName: string,
-  version: string
+  version?: string
 ): Promise<TrustFact[]> {
-  const response = await fetch(`${baseUrlDlt}trust-facts/${packageName}`);
+  const fetchUrl = version
+    ? `${baseUrlDlt}trust-facts/${packageName}`
+    : `${baseUrlDlt}trust-facts/${packageName}/${version}`;
+  const response = await fetch(fetchUrl);
 
   if (!response.ok) {
     throw new Error('Failed to fetch trust facts');
@@ -49,7 +59,7 @@ export async function fetchTrustFacts(
 
 export async function fetchTrustFactsMock(
   name: string,
-  version: string
+  version?: string
 ): Promise<TrustFact[]> {
   const trustFacts = [];
   const count = Math.floor(((name.length + 10) % 20) * Math.random());
@@ -60,6 +70,24 @@ export async function fetchTrustFactsMock(
     };
   }
   return trustFacts;
+}
+
+export async function getTransitiveDependencies(
+  packageName: string,
+  version: string
+): Promise<PackageDetailsTransitiveDependencies> {
+  const packageVersion = version ? `@${version}` : '';
+  const { stdout } = await execAsync(
+    `npm view ${packageName}${packageVersion} version name dependencies --json`
+  );
+
+  const data = JSON.parse(stdout);
+
+  return {
+    version: data.version,
+    name: data.name,
+    dependencies: data.dependencies || {},
+  };
 }
 
 const parseTrustFact = (data: ApiTrustFact): TrustFact => ({

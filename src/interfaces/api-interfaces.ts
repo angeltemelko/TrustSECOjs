@@ -24,3 +24,19 @@ export interface ApiTrustFact {
   factData: string;
   account: { uid: string };
 }
+
+export interface PackageDetailsTransitiveDependencies {
+  version: string;
+  name: string;
+  dependencies: Record<string, string>;
+}
+
+export interface DependencyTree {
+  [key: string]: DependencyTree;
+}
+
+export type FetchFunction = (
+  packageName: string,
+  version?: string,
+  depth?: number
+) => Promise<DependencyTree>;

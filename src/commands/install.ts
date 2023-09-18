@@ -2,24 +2,25 @@ import { execSync } from 'child_process';
 import { displayPackageDetails } from '../utils/table';
 import { getNpmPackageVersion } from '../utils/npm';
 import { hyperlink } from '../utils/hyperlink';
-import { fetchTrustScoreMock } from '../services/fetchData';
-const readline = require('readline');
+import { fetchTrustScoreMock } from '../services/fetch-data';
+import { THRESHOLD } from '../constants/global-constants';
+import * as readline from 'readline';
 
-const THRESHOLD = 80;
+async function install(packageName: string, version?: string) {
+  const resolvedVersion = version || getNpmPackageVersion(packageName);
+  const trustScore = await fetchTrustScoreMock(packageName, resolvedVersion);
 
-async function install(library: string) {
-  const version = getNpmPackageVersion(library);
-  const trustScore = await fetchTrustScoreMock(library);
-
-  await displayPackageDetails(library, version, trustScore);
+  await displayPackageDetails(packageName, resolvedVersion, trustScore);
 
   if (trustScore >= THRESHOLD) {
-    execSync(`npm install ${library}`, { stdio: 'inherit' });
+    execSync(`npm install ${packageName}@${resolvedVersion}`, {
+      stdio: 'inherit',
+    });
     return;
   }
 
   console.warn(
-    `\u001b[33mWarning: The trust score for ${library}@${version} is low ${trustScore}/100. Check ${hyperlink(
+    `\u001b[33mWarning: The trust score for ${packageName}@${resolvedVersion} is low ${trustScore}/100. Check ${hyperlink(
       'http://google.com',
       'TrustSECO portal'
     )} for more details.\u001b[0m`
@@ -32,7 +33,9 @@ async function install(library: string) {
     return;
   }
 
-  execSync(`npm install ${library}`, { stdio: 'inherit' });
+  execSync(`npm install ${packageName}@${resolvedVersion}`, {
+    stdio: 'inherit',
+  });
 }
 
 function askUserToContinue(): Promise<boolean> {
