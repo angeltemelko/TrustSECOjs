@@ -1,6 +1,6 @@
-# TrustSECO npm-trust-score-script
+# TrustSECO.js
 
-This tool, as a part of the TrustSECO project, aims to enhance the security and transparency of your package installations. It assesses the trustworthiness of npm (and other package managers) packages before installation, ensuring you only add reliable dependencies to your projects.
+This tool, as a part of the TrustSECO project, aims to enhance the security and transparency of your package installations. It assesses the trustworthiness of npm packages before installation, ensuring you only add reliable dependencies to your projects.
 
 ## About TrustSECO
 
@@ -27,9 +27,24 @@ $ npm link
 
 ## Usage
 
-To fetch and evaluate a package:
+To evaluate and install a package:
 ```bash
-$ trustseco-install [package-name]
+$ trustseco install <library>
+```
+
+To scan your package.json:
+```bash
+$ trustseco scan
+```
+
+To visualize dependencies and their trust scores
+```bash
+$ trustseco view-tree <library> [version]
+```
+
+To uninstall a package
+```bash
+$ trustseco uninstall <library>
 ```
 
 ## Contributing
