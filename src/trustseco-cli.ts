@@ -4,6 +4,14 @@ import install from './commands/install';
 import scan from './commands/scan';
 import { viewTree } from './commands/view-tree';
 import { execSync } from 'child_process';
+import { info } from './commands/info';
+import {
+  helpTextInfo,
+  helpTextInstall,
+  helpTextScan,
+  helpTextUninstall,
+  helpTextViewTree,
+} from './constants/global-constants';
 
 const program = new Command();
 
@@ -13,7 +21,10 @@ program
 
 program
   .command('install <library> [version]')
-  .description('Intercept npm install for a specific library')
+  .description(
+    'Intercept npm install to assess the trustworthiness of a package.'
+  )
+  .addHelpText('after', helpTextInstall)
   .action((library) => {
     const [packageName, version] = library.split('@');
     install(packageName, version);
@@ -21,25 +32,48 @@ program
 
 program
   .command('scan')
-  .description('Scan all dependencies for trust scores')
-  .option('-d, --dependencies', 'Scan transitive dependencies as well')
-  .option('-r, --report', 'Export results to a CSV report')
+  .description('Scan dependencies to get their trust scores.')
+  .option('-d, --dependencies', 'Include transitive dependencies in the scan.')
+  .option('-r, --report', 'Export the scan results to a CSV report.')
+  .addHelpText('after', helpTextScan)
   .action((options) => {
     scan(options);
   });
 
 program
   .command('uninstall <library>')
-  .description('Uninstall a specific library using npm uninstall')
+  .description('Uninstall a specific library using npm.')
+  .addHelpText('after', helpTextUninstall)
   .action((library) => {
     execSync(`npm uninstall ${library}`, { stdio: 'inherit' });
   });
 
 program
-  .command('view-tree <library> [version]')
-  .description('Visualize dependencies and their trust scores')
+  .command('info <library>')
+  .description('Retrieve information about a specific library.')
+  .addHelpText('after', helpTextInfo)
   .action((library) => {
     const [packageName, version] = library.split('@');
+    info(packageName, version);
+  });
+
+program
+  .command('view-tree <library> [version]')
+  .description('Visualize a library’s dependencies and their trust scores.')
+  .addHelpText('after', helpTextViewTree)
+  .action((library) => {
+    let packageName, version;
+
+    if (library.startsWith('@')) {
+        const parts = library.split('@');
+        packageName = `@${parts[1]}`;
+        version = parts[2];
+    } else {
+        const parts = library.split('@');
+        packageName = parts[0];
+        version = parts[1];
+    }
+
     viewTree(packageName, version);
   });
 

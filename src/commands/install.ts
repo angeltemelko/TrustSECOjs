@@ -5,8 +5,34 @@ import { hyperlink } from '../utils/hyperlink';
 import { fetchTrustScoreMock } from '../services/fetch-data';
 import { THRESHOLD } from '../constants/global-constants';
 import * as readline from 'readline';
+import * as fs from 'fs';
 
 async function install(packageName: string, version?: string) {
+
+  const env = process.env.NODE_ENV || 'development';
+  const policyFile = `policy.${env}.json`;
+  
+  if (fs.existsSync(policyFile)) {
+    const policies = JSON.parse(fs.readFileSync(policyFile, 'utf8'));
+
+    const isPackageBlocked = policies.blocked?.includes(packageName);
+    const isPackageAllowed = policies.allowed?.includes(packageName);
+
+    if (isPackageBlocked) {
+      console.error(
+        `\u001b[31mError: The package ${packageName} is blocked by your organization's policy.\u001b[0m`
+      );
+      return;
+    }
+
+    if (policies.allowed && !isPackageAllowed) {
+      console.error(
+        `\u001b[31mError: The package ${packageName} is not on the allowed list.\u001b[0m`
+      );
+      return;
+    }
+  }
+
   const resolvedVersion = version || getNpmPackageVersion(packageName);
   const trustScore = await fetchTrustScoreMock(packageName, resolvedVersion);
 

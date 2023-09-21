@@ -6,6 +6,14 @@ import { getDependenciesAndPackageJson } from '../utils/dependencies';
 import { THRESHOLD } from '../constants/global-constants';
 import { writeFileSync } from 'fs';
 import { jsonToCsv } from '../utils/json2csv';
+import { execSync } from 'child_process';
+import { AsciiTree } from 'oo-ascii-tree';
+
+interface DependencyNode {
+  name: string;
+  version: string;
+  dependencies?: { [key: string]: DependencyNode };
+}
 
 interface LowTrustLibrary {
   library: string;
@@ -20,18 +28,36 @@ interface ScanOptions {
 
 const customHeaderMap = {
   'Package Name': 'library',
-  'Version': 'version',
+  Version: 'version',
   'Trust Score': 'trustScore',
 };
 
 async function scan(options: ScanOptions) {
-  const { dependencies, packageJson } = getDependenciesAndPackageJson();
+  const { packageJson } = getDependenciesAndPackageJson();
+
+  const stopLoadingIndicator = startLoadingIndicator();
+
+  if (options.dependencies) {
+    const commandOutput = execSync('npm ls --all --json', { encoding: 'utf8' });
+
+    const parsedOutput = JSON.parse(commandOutput);
+    const rootDependency: DependencyNode = {
+      name: parsedOutput.name,
+      version: parsedOutput.version,
+      dependencies: mapDependencies(parsedOutput.dependencies),
+    };
+    const treeWithScores = await getDependencyTreeWithScores(rootDependency);
+    treeWithScores.printTree();
+    stopLoadingIndicator();
+    return;
+  }
+
+  const { dependencies } = getDependenciesAndPackageJson();
+
   if (!dependencies.length) {
     console.log('No dependencies found.');
     return;
   }
-
-  const stopLoadingIndicator = startLoadingIndicator();
 
   let lowTrustLibraries: LowTrustLibrary[] = [];
 
@@ -43,7 +69,7 @@ async function scan(options: ScanOptions) {
       lowTrustLibraries.push({ library, version, trustScore });
     }
 
-    await delay(1000);
+    await delay(500);
   }
 
   stopLoadingIndicator();
@@ -76,6 +102,45 @@ async function scan(options: ScanOptions) {
       '\n A report has been created in the root folder of this project named trust_scores_report.csv'
     );
   }
+}
+
+async function getDependencyTreeWithScores(
+  root: DependencyNode
+): Promise<AsciiTree> {
+  const trustScore = await fetchTrustScoreMock(root.name);
+  const rootNode = new AsciiTree(
+    `${root.name}@${root.version} ` +
+      (trustScore < THRESHOLD
+        ? `\u001b[33mTrustScore:${trustScore}\u001b[0m`
+        : `TrustScore:${trustScore}`)
+  );
+
+  if (root.dependencies) {
+    for (const child of Object.values(root.dependencies)) {
+      const childNode = await getDependencyTreeWithScores(child);
+      rootNode.add(childNode);
+    }
+  }
+
+  return rootNode;
+}
+
+function mapDependencies(
+  deps: any
+): { [key: string]: DependencyNode } | undefined {
+  if (!deps) return undefined;
+
+  let mappedDeps: { [key: string]: DependencyNode } = {};
+
+  for (const [name, dep] of Object.entries(deps)) {
+    mappedDeps[name] = {
+      name: name,
+      version: (dep as any).version,
+      dependencies: mapDependencies((dep as any).dependencies),
+    };
+  }
+
+  return mappedDeps;
 }
 
 export default scan;

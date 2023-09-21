@@ -9,6 +9,8 @@ import { THRESHOLD } from '../constants/global-constants';
 
 const processedDependencies = new Set<string>();
 
+const failedChecks: string[] = [];
+
 export async function viewTree(
   rootPackageName: string,
   rootPackageVersion: string
@@ -19,6 +21,11 @@ export async function viewTree(
   const rootTree = await fetchDependencyTree(rootPackageName, resolvedVersion);
   stopLoadingIndicator();
   rootTree.printTree();
+
+  if (failedChecks.length > 0) {
+    console.error(`Failed to check the following packages:`);
+    failedChecks.forEach(pkg => console.error(`- ${pkg}`));
+  }
 }
 
 async function fetchDependencyTree(
@@ -28,20 +35,31 @@ async function fetchDependencyTree(
 ): Promise<AsciiTree> {
   const packageId = `${packageName}@${version}`;
   if (processedDependencies.has(packageId)) {
-    return new AsciiTree(`${packageName}@${version} (processed)`);
+    return new AsciiTree(`${packageName}@${version}`);
   }
+
+  console.log(`${packageName}@${version}`);
 
   processedDependencies.add(packageId);
 
-  if (depth > 3) {
+  if (depth > 2) {
     return new AsciiTree(packageId);
   }
 
-  const packageDetails = await getTransitiveDependencies(packageName, version);
-  const trustScore = await fetchTrustScoreMock(
-    packageDetails.name,
-    packageDetails.version
-  );
+  let packageDetails;
+  let trustScore;
+  
+  try {
+    packageDetails = await getTransitiveDependencies(packageName, version);
+    trustScore = await fetchTrustScoreMock(
+      packageDetails.name,
+      packageDetails.version
+    );
+  } catch (error) {
+    console.warn(`Error fetching details for ${packageId}. Skipping...`);
+    failedChecks.push(packageId);
+    return new AsciiTree(`${packageName}@${version} (error)`);
+  }
 
   const rootNode = new AsciiTree(
     `${packageName}@${packageDetails.version} ` +
@@ -51,10 +69,11 @@ async function fetchDependencyTree(
   );
 
   const childNodesPromises = Object.entries(packageDetails.dependencies).map(
-    async ([dep, version]) => {
+    async ([dep, version]: [string, string]) => {
       return fetchDependencyTree(dep, version, depth + 1);
     }
-  );
+);
+
 
   const childNodes = await Promise.all(childNodesPromises);
 

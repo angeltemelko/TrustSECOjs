@@ -1,5 +1,6 @@
 import { exec } from 'child_process';
 import { promisify } from 'util';
+import * as semver from 'semver'
 
 const execAsync = promisify(exec);
 
@@ -76,7 +77,8 @@ export async function getTransitiveDependencies(
   packageName: string,
   version: string
 ): Promise<PackageDetailsTransitiveDependencies> {
-  const packageVersion = version ? `@${version}` : '';
+  const resolvedVersion = await resolveVersionRange(packageName, version);
+  const packageVersion = resolvedVersion ? `@${resolvedVersion}` : '';
   const { stdout } = await execAsync(
     `npm view ${packageName}${packageVersion} version name dependencies --json`
   );
@@ -88,6 +90,19 @@ export async function getTransitiveDependencies(
     name: data.name,
     dependencies: data.dependencies || {},
   };
+}
+
+async function resolveVersionRange(packageName: string, versionRange: string): Promise<string> {
+  if (!versionRange.includes('>=') && !versionRange.includes('<')) {
+      return versionRange;  
+  }
+
+  const { stdout } = await execAsync(`npm view ${packageName} versions --json`);
+  const allVersions: string[] = JSON.parse(stdout);
+  
+  const resolvedVersion = allVersions.reverse().find(version => semver.satisfies(version, versionRange));
+
+  return resolvedVersion || versionRange;  
 }
 
 const parseTrustFact = (data: ApiTrustFact): TrustFact => ({
