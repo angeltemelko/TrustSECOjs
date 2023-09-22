@@ -11,13 +11,13 @@ import {
   helpTextScan,
   helpTextUninstall,
   helpTextViewTree,
+  mainDescription,
 } from './constants/global-constants';
+import { parseLibrary } from './utils/common';
 
 const program = new Command();
 
-program
-  .version('0.1.0')
-  .description('Intercept npm install to check trust score');
+program.version('0.1.0').description(mainDescription);
 
 program
   .command('install <library> [version]')
@@ -62,18 +62,7 @@ program
   .description('Visualize a library’s dependencies and their trust scores.')
   .addHelpText('after', helpTextViewTree)
   .action((library) => {
-    let packageName, version;
-
-    if (library.startsWith('@')) {
-        const parts = library.split('@');
-        packageName = `@${parts[1]}`;
-        version = parts[2];
-    } else {
-        const parts = library.split('@');
-        packageName = parts[0];
-        version = parts[1];
-    }
-
+    const { packageName, version } = parseLibrary(library);
     viewTree(packageName, version);
   });
 

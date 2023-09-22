@@ -1,6 +1,4 @@
 import { fetchTrustScoreMock } from '../services/fetch-data';
-import { hyperlink } from '../utils/hyperlink';
-import { delay } from '../utils/delay';
 import { startLoadingIndicator } from '../utils/loading-Indicator';
 import { getDependenciesAndPackageJson } from '../utils/dependencies';
 import { THRESHOLD } from '../constants/global-constants';
@@ -8,31 +6,10 @@ import { writeFileSync } from 'fs';
 import { jsonToCsv } from '../utils/json2csv';
 import { execSync } from 'child_process';
 import { AsciiTree } from 'oo-ascii-tree';
+import { delay, hyperlink } from '../utils/common';
+import { DependencyNode, LowTrustLibrary, ScanOptions, customHeaderMap } from '../interfaces/scan-interfaces';
 
-interface DependencyNode {
-  name: string;
-  version: string;
-  dependencies?: { [key: string]: DependencyNode };
-}
-
-interface LowTrustLibrary {
-  library: string;
-  version: string;
-  trustScore: number;
-}
-
-interface ScanOptions {
-  dependencies?: boolean;
-  report?: boolean;
-}
-
-const customHeaderMap = {
-  'Package Name': 'library',
-  Version: 'version',
-  'Trust Score': 'trustScore',
-};
-
-async function scan(options: ScanOptions) {
+async function scan(options: ScanOptions): Promise<void> {
   const { packageJson } = getDependenciesAndPackageJson();
 
   const stopLoadingIndicator = startLoadingIndicator();

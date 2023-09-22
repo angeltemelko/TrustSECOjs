@@ -13,7 +13,7 @@ const failedChecks: string[] = [];
 
 export async function viewTree(
   rootPackageName: string,
-  rootPackageVersion: string
+  rootPackageVersion?: string
 ): Promise<void> {
   const resolvedVersion =
     rootPackageVersion || getNpmPackageVersion(rootPackageName);
@@ -37,8 +37,6 @@ async function fetchDependencyTree(
   if (processedDependencies.has(packageId)) {
     return new AsciiTree(`${packageName}@${version}`);
   }
-
-  console.log(`${packageName}@${version}`);
 
   processedDependencies.add(packageId);
 

@@ -1,4 +1,4 @@
-interface HeaderMap {
+export interface HeaderMap {
   [headerName: string]: string;
 }
 
@@ -24,3 +24,4 @@ export function jsonToCsv(data: any[], headerMap?: HeaderMap): string {
 
   return [header.join(','), ...rows].join('\n');
 }
+

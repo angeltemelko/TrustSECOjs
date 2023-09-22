@@ -1,36 +1,21 @@
 import { execSync } from 'child_process';
 import { displayPackageDetails } from '../utils/table';
 import { getNpmPackageVersion } from '../utils/npm';
-import { hyperlink } from '../utils/hyperlink';
 import { fetchTrustScoreMock } from '../services/fetch-data';
 import { THRESHOLD } from '../constants/global-constants';
 import * as readline from 'readline';
-import * as fs from 'fs';
+import { checkPolicies } from '../utils/policy';
+import { hyperlink } from '../utils/common';
 
-async function install(packageName: string, version?: string) {
-
+async function install(packageName: string, version?: string): Promise<void> {
   const env = process.env.NODE_ENV || 'development';
   const policyFile = `policy.${env}.json`;
-  
-  if (fs.existsSync(policyFile)) {
-    const policies = JSON.parse(fs.readFileSync(policyFile, 'utf8'));
 
-    const isPackageBlocked = policies.blocked?.includes(packageName);
-    const isPackageAllowed = policies.allowed?.includes(packageName);
-
-    if (isPackageBlocked) {
-      console.error(
-        `\u001b[31mError: The package ${packageName} is blocked by your organization's policy.\u001b[0m`
-      );
-      return;
-    }
-
-    if (policies.allowed && !isPackageAllowed) {
-      console.error(
-        `\u001b[31mError: The package ${packageName} is not on the allowed list.\u001b[0m`
-      );
-      return;
-    }
+  if (
+    !(await checkPolicies(packageName, policyFile)) &&
+    !(await askUserToContinue())
+  ) {
+    return;
   }
 
   const resolvedVersion = version || getNpmPackageVersion(packageName);
@@ -47,7 +32,7 @@ async function install(packageName: string, version?: string) {
 
   console.warn(
     `\u001b[33mWarning: The trust score for ${packageName}@${resolvedVersion} is low ${trustScore}/100. Check ${hyperlink(
-      'http://google.com',
+      `http://${process.env.PORTAL_URL || 'localhost:3000'}`,
       'TrustSECO portal'
     )} for more details.\u001b[0m`
   );

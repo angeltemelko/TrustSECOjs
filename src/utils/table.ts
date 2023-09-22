@@ -7,7 +7,6 @@ export async function displayPackageDetails(
 ) {
   const trustFacts = await fetchTrustFactsMock(name, version);
 
-  // Main table
   console.log(
     padString('Name', 20) +
       '|' +
