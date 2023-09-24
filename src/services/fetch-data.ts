@@ -2,7 +2,7 @@ import { exec } from 'child_process';
 import { promisify } from 'util';
 import * as semver from 'semver'
 
-const execAsync = promisify(exec);
+export const execAsync = promisify(exec);
 
 import {
   ApiTrustFact,
@@ -38,8 +38,8 @@ export async function fetchTrustFacts(
   version?: string
 ): Promise<TrustFact[]> {
   const fetchUrl = version
-    ? `${baseUrlDlt}trust-facts/${packageName}`
-    : `${baseUrlDlt}trust-facts/${packageName}/${version}`;
+    ? `${baseUrlDlt}trust-facts/${packageName}/${version}`
+    : `${baseUrlDlt}trust-facts/${packageName}`;
   const response = await fetch(fetchUrl);
 
   if (!response.ok) {
@@ -92,7 +92,7 @@ export async function getTransitiveDependencies(
   };
 }
 
-async function resolveVersionRange(packageName: string, versionRange: string): Promise<string> {
+export async function resolveVersionRange(packageName: string, versionRange: string): Promise<string> {
   if (!versionRange.includes('>=') && !versionRange.includes('<')) {
       return versionRange;  
   }

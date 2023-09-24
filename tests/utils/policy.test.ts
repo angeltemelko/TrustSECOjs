@@ -10,14 +10,18 @@ describe('checkPolicies', () => {
   });
 
   it('should return true if policy file does not exist', async () => {
+    // Arange
     (fs.existsSync as jest.Mock).mockReturnValue(false);
     
+    // Act
     const result = await checkPolicies('trustseco', 'ploicy.development.json');
     
+    // Assert
     expect(result).toBe(true);
   });
 
   it('should return false and log warning if package is blocked', async () => {
+    // Arange
     const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
     const packageName = 'trustseco';
     const policyFile = 'ploicy.development.json';
@@ -28,8 +32,10 @@ describe('checkPolicies', () => {
     (fs.existsSync as jest.Mock).mockReturnValue(true);
     (fs.readFileSync as jest.Mock).mockReturnValue(JSON.stringify(policies));
     
+    // Act
     const result = await checkPolicies(packageName, policyFile);
     
+    // Assert
     expect(result).toBe(false);
     expect(consoleErrorSpy).toHaveBeenCalledWith(expect.stringContaining(`The package ${packageName} is blocked`));
     
@@ -37,6 +43,7 @@ describe('checkPolicies', () => {
   });
 
   it('should return false and log warning if package is not allowed', async () => {
+    // Arange
     const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
     const packageName = 'trustseco';
     const policyFile = 'ploicy.development.json';
@@ -47,8 +54,11 @@ describe('checkPolicies', () => {
     (fs.existsSync as jest.Mock).mockReturnValue(true);
     (fs.readFileSync as jest.Mock).mockReturnValue(JSON.stringify(policies));
     
+    // Act
     const result = await checkPolicies(packageName, policyFile);
     
+
+    // Assert
     expect(result).toBe(false);
     expect(consoleErrorSpy).toHaveBeenCalledWith(expect.stringContaining(`The package ${packageName} is not on the allowed list`));
     
@@ -56,6 +66,7 @@ describe('checkPolicies', () => {
   });
 
   it('should return true if package is allowed', async () => {
+    // Arange
     const packageName = 'trustseco';
     const policyFile = 'ploicy.development.json';
     const policies = {
@@ -65,8 +76,10 @@ describe('checkPolicies', () => {
     (fs.existsSync as jest.Mock).mockReturnValue(true);
     (fs.readFileSync as jest.Mock).mockReturnValue(JSON.stringify(policies));
     
+    // Act
     const result = await checkPolicies(packageName, policyFile);
     
+    // Assert
     expect(result).toBe(true);
   });
 
