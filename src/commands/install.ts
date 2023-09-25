@@ -1,11 +1,12 @@
 import { execSync } from 'child_process';
 import { displayPackageDetails } from '../utils/table';
 import { getNpmPackageVersion } from '../utils/npm';
-import { fetchTrustScoreMock } from '../services/fetch-data';
+import { fetchTrustScore, fetchTrustScoreMock } from '../services/fetch-data';
 import { THRESHOLD } from '../constants/global-constants';
 import * as readline from 'readline';
 import { checkPolicies } from '../utils/policy';
 import { hyperlink } from '../utils/common';
+import * as semver from 'semver';
 
 async function install(packageName: string, version?: string): Promise<void> {
   const env = process.env.NODE_ENV || 'development';
@@ -19,19 +20,33 @@ async function install(packageName: string, version?: string): Promise<void> {
   }
 
   const resolvedVersion = version || getNpmPackageVersion(packageName);
-  const trustScore = await fetchTrustScoreMock(packageName, resolvedVersion);
+  const cleanedVersion = semver.valid(semver.coerce(resolvedVersion)) || "";
+  
+  const trustScore = await fetchTrustScoreMock(packageName, cleanedVersion);
 
-  await displayPackageDetails(packageName, resolvedVersion, trustScore);
+  if (!trustScore) {
+    console.warn(
+      'Unable to retrive trust score, continue to install regularrly'
+    );
+    const userConfirmed = await askUserToContinue();
+    if (userConfirmed)
+      execSync(`npm install ${packageName}@${cleanedVersion}`, {
+        stdio: 'inherit',
+      });
+    return;
+  }
+
+  await displayPackageDetails(packageName, cleanedVersion, trustScore);
 
   if (trustScore >= THRESHOLD) {
-    execSync(`npm install ${packageName}@${resolvedVersion}`, {
+    execSync(`npm install ${packageName}@${cleanedVersion}`, {
       stdio: 'inherit',
     });
     return;
   }
 
   console.warn(
-    `\u001b[33mWarning: The trust score for ${packageName}@${resolvedVersion} is low ${trustScore}/100. Check ${hyperlink(
+    `\u001b[33mWarning: The trust score for ${packageName}@${cleanedVersion} is low ${trustScore}/100. Check ${hyperlink(
       `http://${process.env.PORTAL_URL || 'localhost:3000'}`,
       'TrustSECO portal'
     )} for more details.\u001b[0m`
@@ -44,7 +59,7 @@ async function install(packageName: string, version?: string): Promise<void> {
     return;
   }
 
-  execSync(`npm install ${packageName}@${resolvedVersion}`, {
+  execSync(`npm install ${packageName}@${cleanedVersion}`, {
     stdio: 'inherit',
   });
 }

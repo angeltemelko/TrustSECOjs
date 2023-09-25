@@ -1,21 +1,27 @@
-import { fetchTrustScoreMock } from '../services/fetch-data';
-import { startLoadingIndicator } from '../utils/loading-Indicator';
+import { fetchTrustScore, fetchTrustScoreMock } from '../services/fetch-data';
 import { getDependenciesAndPackageJson } from '../utils/dependencies';
 import { THRESHOLD } from '../constants/global-constants';
 import { writeFileSync } from 'fs';
 import { jsonToCsv } from '../utils/json2csv';
 import { execSync } from 'child_process';
+import { hyperlink } from '../utils/common';
+import {
+  DependencyNode,
+  LowTrustLibrary,
+  ScanOptions,
+  customHeaderMap,
+} from '../interfaces/scan-interfaces';
+import * as semver from 'semver';
 import { AsciiTree } from 'oo-ascii-tree';
-import { delay, hyperlink } from '../utils/common';
-import { DependencyNode, LowTrustLibrary, ScanOptions, customHeaderMap } from '../interfaces/scan-interfaces';
+import ora from 'ora';
 
 async function scan(options: ScanOptions): Promise<void> {
-  const { packageJson } = getDependenciesAndPackageJson();
+  const { packageJson, dependencies } = getDependenciesAndPackageJson();
 
-  const stopLoadingIndicator = startLoadingIndicator();
+  const spinner = ora('Loading').start();
 
   if (options.dependencies) {
-    const commandOutput = execSync('npm ls --all --json', { encoding: 'utf8' });
+    const commandOutput = execSync('npm ls --production --all --json', { encoding: 'utf8' });
 
     const parsedOutput = JSON.parse(commandOutput);
     const rootDependency: DependencyNode = {
@@ -25,31 +31,29 @@ async function scan(options: ScanOptions): Promise<void> {
     };
     const treeWithScores = await getDependencyTreeWithScores(rootDependency);
     treeWithScores.printTree();
-    stopLoadingIndicator();
+    spinner.stop();
     return;
   }
 
-  const { dependencies } = getDependenciesAndPackageJson();
-
-  if (!dependencies.length) {
+  if (Object.keys(dependencies).length === 0) {
     console.log('No dependencies found.');
+    spinner.stop();
     return;
   }
 
   let lowTrustLibraries: LowTrustLibrary[] = [];
 
-  for (const library of dependencies) {
-    const trustScore = await fetchTrustScoreMock(library);
+  for (const library in dependencies) {
+    const cleanVersion = semver.valid(semver.coerce(dependencies[library]));
+    const trustScore = await fetchTrustScoreMock(library, cleanVersion ?? '');
     const version = packageJson.dependencies[library];
 
-    if (trustScore < THRESHOLD) {
+    if (trustScore  && trustScore < THRESHOLD ) {
       lowTrustLibraries.push({ library, version, trustScore });
     }
-
-    await delay(500);
   }
 
-  stopLoadingIndicator();
+  spinner.stop();
 
   process.stdout.clearLine(0);
   process.stdout.cursorTo(0);
@@ -67,7 +71,7 @@ async function scan(options: ScanOptions): Promise<void> {
   }
   console.log(
     `For more information, visit \u001b[34m${hyperlink(
-      'https://google.com',
+      'http://localhost:3000',
       'TrustSECO-portal'
     )}\u001b[0m.`
   );

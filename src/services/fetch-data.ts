@@ -1,15 +1,14 @@
 import { exec } from 'child_process';
 import { promisify } from 'util';
 import * as semver from 'semver'
-
-export const execAsync = promisify(exec);
-
 import {
   ApiTrustFact,
   PackageDetailsTransitiveDependencies,
   TrustFact,
   defaultPackage,
 } from '../interfaces/api-interfaces';
+import fetch from 'node-fetch';
+export const execAsync = promisify(exec);
 
 const baseUrlDlt = 'http://localhost:3000/api/dlt/';
 
@@ -17,12 +16,14 @@ export async function fetchTrustScore(
   packageName: string,
   version: string
 ): Promise<number | undefined> {
-  const response = await fetch(`package/${packageName}/trust-score/${version}`);
+  const response = await fetch(`${baseUrlDlt}package/${packageName}/trust-score/${version}`);
 
   if (!response.ok) throw Error('Failed to fetch trust score');
 
   const data = await response.json();
 
+  console.log(data);
+  
   return typeof data === 'number' ? data : undefined;
 }
 
@@ -37,16 +38,14 @@ export async function fetchTrustFacts(
   packageName: string,
   version?: string
 ): Promise<TrustFact[]> {
-  const fetchUrl = version
-    ? `${baseUrlDlt}trust-facts/${packageName}/${version}`
-    : `${baseUrlDlt}trust-facts/${packageName}`;
+  const fetchUrl =  `${baseUrlDlt}trust-facts/${packageName}`;
+  
   const response = await fetch(fetchUrl);
-
   if (!response.ok) {
     throw new Error('Failed to fetch trust facts');
   }
 
-  const data: { facts: ApiTrustFact[] } = await response.json();
+  const data = await response.json() as { facts?: ApiTrustFact[] };
 
   if (!data.facts) {
     return [];
@@ -77,7 +76,7 @@ export async function getTransitiveDependencies(
   packageName: string,
   version: string
 ): Promise<PackageDetailsTransitiveDependencies> {
-  const resolvedVersion = await resolveVersionRange(packageName, version);
+  const resolvedVersion = semver.valid(semver.coerce(version));
   const packageVersion = resolvedVersion ? `@${resolvedVersion}` : '';
   const { stdout } = await execAsync(
     `npm view ${packageName}${packageVersion} version name dependencies --json`
@@ -90,19 +89,6 @@ export async function getTransitiveDependencies(
     name: data.name,
     dependencies: data.dependencies || {},
   };
-}
-
-export async function resolveVersionRange(packageName: string, versionRange: string): Promise<string> {
-  if (!versionRange.includes('>=') && !versionRange.includes('<')) {
-      return versionRange;  
-  }
-
-  const { stdout } = await execAsync(`npm view ${packageName} versions --json`);
-  const allVersions: string[] = JSON.parse(stdout);
-  
-  const resolvedVersion = allVersions.reverse().find(version => semver.satisfies(version, versionRange));
-
-  return resolvedVersion || versionRange;  
 }
 
 const parseTrustFact = (data: ApiTrustFact): TrustFact => ({

@@ -21,6 +21,7 @@ program.version('0.1.0').description(mainDescription);
 
 program
   .command('install <library> [version]')
+  .alias('i')
   .description(
     'Intercept npm install to assess the trustworthiness of a package.'
   )
@@ -32,6 +33,7 @@ program
 
 program
   .command('scan')
+  .alias('s')
   .description('Scan dependencies to get their trust scores.')
   .option('-d, --dependencies', 'Include transitive dependencies in the scan.')
   .option('-r, --report', 'Export the scan results to a CSV report.')
@@ -42,6 +44,7 @@ program
 
 program
   .command('uninstall <library>')
+  .alias('u')
   .description('Uninstall a specific library using npm.')
   .addHelpText('after', helpTextUninstall)
   .action((library) => {
@@ -59,6 +62,7 @@ program
 
 program
   .command('view-tree <library> [version]')
+  .alias('vt')
   .description('Visualize a library’s dependencies and their trust scores.')
   .addHelpText('after', helpTextViewTree)
   .action((library) => {
