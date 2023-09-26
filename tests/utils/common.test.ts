@@ -1,4 +1,4 @@
-import { ParsedLibrary, delay, hyperlink, parseLibrary } from '../../src/utils/common';
+import { ParsedLibrary, hyperlink, parseLibrary } from '../../src/utils/common';
 
 describe('hyperlink function', () => {
   it('should return the correct ANSI escape code for hyperlink', () => {

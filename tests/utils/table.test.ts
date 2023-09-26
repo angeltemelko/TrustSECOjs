@@ -5,9 +5,11 @@ jest.mock('../../src/services/fetch-data');
 
 describe('displayPackageDetails', () => {
   let consoleLogSpy: jest.SpyInstance;
+  let consoleTableSpy : jest.SpyInstance;
 
   beforeEach(() => {
     consoleLogSpy = jest.spyOn(console, 'log').mockImplementation();
+    consoleTableSpy = jest.spyOn(console, 'table').mockImplementation();
   });
 
   afterEach(() => {
@@ -30,24 +32,14 @@ describe('displayPackageDetails', () => {
     await displayPackageDetails(name, version, trustScore);
 
     // Assert
-    expect(consoleLogSpy).toHaveBeenCalledWith(
-      expect.stringContaining('Name                |Version   |Trust Score    ')
-    );
-    expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining(name));
-    expect(consoleLogSpy).toHaveBeenCalledWith(
-      expect.stringContaining(version)
-    );
-    expect(consoleLogSpy).toHaveBeenCalledWith(
-      expect.stringContaining(`${trustScore}/100`)
-    );
-    trustFacts.forEach((fact) => {
-      expect(consoleLogSpy).toHaveBeenCalledWith(
-        expect.stringContaining(fact.type)
-      );
-      expect(consoleLogSpy).toHaveBeenCalledWith(
-        expect.stringContaining(fact.value)
-      );
+    expect(consoleTableSpy).toHaveBeenCalledWith([
+      { Name: name, Version: version, TrustScore: `${trustScore}/100` }
+    ]);
+    const expectedTable: { [key: string]: any } = {};
+    trustFacts.forEach(fact => {
+      expectedTable[fact.type] = fact.value;
     });
+    expect(consoleTableSpy).toHaveBeenCalledWith(expectedTable);
   });
 
   it('should display message if no trust facts are available', async () => {

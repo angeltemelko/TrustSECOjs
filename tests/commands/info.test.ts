@@ -1,10 +1,10 @@
 import { info } from '../../src/commands/info';
-import { fetchTrustScoreMock } from '../../src/services/fetch-data';
+import { fetchTrustScore, fetchTrustScoreMock } from '../../src/services/fetch-data';
 import { getNpmPackageVersion } from '../../src/utils/npm';
 import { displayPackageDetails } from '../../src/utils/table';
 
 jest.mock('../../src/services/fetch-data', () => ({
-  fetchTrustScoreMock: jest.fn(),
+  fetchTrustScore: jest.fn(),
 }));
 
 jest.mock('../../src/utils/npm', () => ({
@@ -23,13 +23,13 @@ describe('info', () =>
     const trustScore = 80;
 
     (getNpmPackageVersion as jest.Mock).mockReturnValueOnce(version);
-    (fetchTrustScoreMock as jest.Mock).mockResolvedValueOnce(trustScore);
+    (fetchTrustScore as jest.Mock).mockResolvedValueOnce(trustScore);
 
     // Act
     await info(packageName, version);
 
     // Assert
-    expect(fetchTrustScoreMock).toHaveBeenCalledWith(packageName, version);
+    expect(fetchTrustScore).toHaveBeenCalledWith(packageName, version);
     expect(displayPackageDetails).toHaveBeenCalledWith(
       packageName,
       version,

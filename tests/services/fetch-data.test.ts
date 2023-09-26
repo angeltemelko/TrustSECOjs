@@ -46,7 +46,7 @@ describe('fetchTrustScore', () => {
     expect(result).toBe(expected);
     expect(fetch).toHaveBeenCalledTimes(1);
     expect(fetch).toHaveBeenCalledWith(
-      `package/${packageName}/trust-score/${version}`
+      `${baseUrlDlt}package/${packageName}/trust-score/${version}`
     );
   });
   it('should throw an error when response is not ok', async () => {
@@ -63,7 +63,7 @@ describe('fetchTrustScore', () => {
     ).rejects.toThrow('Failed to fetch trust score');
     expect(fetch).toHaveBeenCalledTimes(1);
     expect(fetch).toHaveBeenCalledWith(
-      `package/${packageName}/trust-score/${version}`
+      `${baseUrlDlt}package/${packageName}/trust-score/${version}`
     );
   });
 });

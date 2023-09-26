@@ -16,7 +16,6 @@ describe('getDependenciesAndPackageJson', () => {
         dependencytrustseco2: '2.0.0',
       },
     };
-    const mockDependencies = ['dependencytrustseco1', 'dependencytrustseco2'];
 
     jest.spyOn(process, 'cwd').mockReturnValue(mockCwd);
     (path.join as jest.Mock).mockReturnValue(mockPackageJsonPath);
@@ -28,7 +27,7 @@ describe('getDependenciesAndPackageJson', () => {
     const { dependencies, packageJson } = getDependenciesAndPackageJson();
 
     // Assert
-    expect(dependencies).toEqual(mockDependencies);
+    expect(dependencies).toEqual(mockPackageJson.dependencies);
     expect(packageJson).toEqual(mockPackageJson);
     expect(path.join).toHaveBeenCalledWith(mockCwd, 'package.json');
     expect(readFileSync).toHaveBeenCalledWith(mockPackageJsonPath, 'utf-8');
