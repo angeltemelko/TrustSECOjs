@@ -3,6 +3,11 @@ import { fetchTrustFactsMock } from '../../src/services/fetch-data';
 
 jest.mock('../../src/services/fetch-data');
 
+jest.mock('node-fetch', () => {
+  return jest.fn(() => Promise.resolve({ json: () => Promise.resolve({ data: 'someData' }) }));
+});
+
+
 describe('displayPackageDetails', () => {
   let consoleLogSpy: jest.SpyInstance;
   let consoleTableSpy : jest.SpyInstance;

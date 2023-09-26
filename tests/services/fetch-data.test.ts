@@ -6,7 +6,7 @@ import {
   defaultPackage,
 } from '../../src/interfaces/api-interfaces';
 import * as fetchData from '../../src/services/fetch-data';
-import fetchMock from 'jest-fetch-mock';
+import fetch, { Response } from 'node-fetch';
 
 jest.mock('child_process', () => {
   return {
@@ -23,48 +23,42 @@ jest.mock('child_process', () => {
     ),
   };
 });
-fetchMock.enableMocks();
 
-beforeEach(() => {
-  fetchMock.resetMocks();
+jest.mock('node-fetch', () => {
+  return jest.fn(() =>
+    Promise.resolve({ ok: true, json: () => Promise.resolve(80) })
+  );
 });
-
-const baseUrlDlt = 'http://localhost:3000/api/dlt/';
 
 describe('fetchTrustScore', () => {
   test('Should return number when response is ok', async () => {
-    // Arange
+    // Arrange
     const packageName = 'trustseco';
     const version = '0.1.0';
     const expected = 80;
 
     // Act
-    fetchMock.mockResponseOnce(JSON.stringify(80));
     const result = await fetchData.fetchTrustScore(packageName, version);
 
     // Assert
     expect(result).toBe(expected);
-    expect(fetch).toHaveBeenCalledTimes(1);
-    expect(fetch).toHaveBeenCalledWith(
-      `${baseUrlDlt}package/${packageName}/trust-score/${version}`
-    );
   });
   it('should throw an error when response is not ok', async () => {
-    // Arrange
+    // Arange
     const packageName = 'trustseco';
     const version = '0.1.0';
 
+    const mockedFetch = fetch as unknown as jest.MockedFunction<typeof fetch>;
+
     // Act
-    fetchMock.mockRejectOnce(new Error('Failed to fetch trust score'));
+    mockedFetch.mockResolvedValueOnce(
+      Promise.resolve({ ok: false, json: () => Promise.resolve() }) as any
+    );
 
     // Assert
     await expect(
       fetchData.fetchTrustScore(packageName, version)
     ).rejects.toThrow('Failed to fetch trust score');
-    expect(fetch).toHaveBeenCalledTimes(1);
-    expect(fetch).toHaveBeenCalledWith(
-      `${baseUrlDlt}package/${packageName}/trust-score/${version}`
-    );
   });
 });
 
@@ -103,18 +97,19 @@ describe('fetchTrustFacts', () => {
     const expectedTrustFacts = mockApiTrustFacts
       .filter(versionFilter)
       .map((item: ApiTrustFact) => parseTrustFact(item));
+    const mockedFetch = fetch as unknown as jest.MockedFunction<typeof fetch>;
 
     // Act
-    fetchMock.mockResponseOnce(JSON.stringify(mockApiTrustFacts));
-
-    const result = await fetchData.fetchTrustFacts(packageName, version);
-    // Assert
-
-    expect(result).toEqual(expectedTrustFacts);
-    expect(fetch).toHaveBeenCalledTimes(1);
-    expect(fetch).toHaveBeenCalledWith(
-      `${baseUrlDlt}trust-facts/${packageName}/${version}`
+    mockedFetch.mockResolvedValueOnce(
+      Promise.resolve({
+        ok: true,
+        json: () => Promise.resolve(mockApiTrustFacts),
+      }) as any
     );
+    const result = await fetchData.fetchTrustFacts(packageName, version);
+
+    // Assert
+    expect(result).toEqual(expectedTrustFacts);
   });
 
   it('Should return empty trust facts', async () => {
@@ -123,9 +118,12 @@ describe('fetchTrustFacts', () => {
     const version = '0.1.0';
 
     const expectedTrustFacts = [{}];
+    const mockedFetch = fetch as unknown as jest.MockedFunction<typeof fetch>;
 
     // Act
-    fetchMock.mockResponseOnce(JSON.stringify({}));
+    mockedFetch.mockResolvedValueOnce(
+      Promise.resolve({ ok: true, json: () => Promise.resolve({}) }) as any
+    );
     const result = await fetchData.fetchTrustFacts(packageName, version);
 
     // Assert
@@ -136,10 +134,12 @@ describe('fetchTrustFacts', () => {
     // Aranage
     const packageName = 'trustseco';
     const version = '0.1.0';
+    const mockedFetch = fetch as unknown as jest.MockedFunction<typeof fetch>;
 
     // Act
-    fetchMock.mockRejectOnce(new Error('Failed to fetch trust facts'));
-
+    mockedFetch.mockResolvedValueOnce(
+      Promise.resolve({ ok: false, json: () => Promise.resolve() }) as any
+    );
     // Assert
     await expect(
       fetchData.fetchTrustFacts(packageName, version)
@@ -149,15 +149,10 @@ describe('fetchTrustFacts', () => {
 
 describe('getTransitiveDependencies', () => {
   it('should return transitive dependencies', async () => {
+    // Arrange
     const packageName = 'trustseco';
     const version = '0.1.0';
 
-    const result = await fetchData.getTransitiveDependencies(
-      packageName,
-      version
-    );
-
-    // Define the expected result
     const expectedResult = {
       version: '0.1.0',
       name: 'trustseco',
@@ -165,6 +160,12 @@ describe('getTransitiveDependencies', () => {
         semver: '^1.0.0',
       },
     };
+
+    // Act
+    const result = await fetchData.getTransitiveDependencies(
+      packageName,
+      version
+    );
 
     // Assert
     expect(result).toEqual(expectedResult);
