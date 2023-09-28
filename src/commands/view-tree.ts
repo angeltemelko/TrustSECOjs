@@ -16,7 +16,7 @@ export async function viewTree(
   rootPackageVersion?: string
 ): Promise<void> {
   const cleanedVersion = semver.valid(semver.coerce(rootPackageVersion)) || '';
-  const spinner = ora('Loading').start();
+  const spinner = ora('Transitive scan may take a while').start();
   const rootTree = await fetchDependencyTree(rootPackageName, cleanedVersion);
   spinner.stop();
   rootTree.printTree();

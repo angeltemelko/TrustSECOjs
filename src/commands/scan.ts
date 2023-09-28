@@ -18,10 +18,10 @@ import ora from 'ora';
 async function scan(options: ScanOptions): Promise<void> {
   const { packageJson, dependencies } = getDependenciesAndPackageJson();
 
-  const spinner = ora('Loading').start();
+  const spinner = ora('Scan may take a while').start();
 
   if (options.dependencies) {
-    const commandOutput = execSync('npm ls --production --all --json', { encoding: 'utf8' });
+    const commandOutput = execSync('npm ls --omit=dev --all --json', { encoding: 'utf8' });
 
     const parsedOutput = JSON.parse(commandOutput);
     const rootDependency: DependencyNode = {
@@ -30,8 +30,8 @@ async function scan(options: ScanOptions): Promise<void> {
       dependencies: mapDependencies(parsedOutput.dependencies),
     };
     const treeWithScores = await getDependencyTreeWithScores(rootDependency);
-    treeWithScores.printTree();
     spinner.stop();
+    treeWithScores.printTree();
     return;
   }
 

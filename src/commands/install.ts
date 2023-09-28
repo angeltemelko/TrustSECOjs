@@ -7,8 +7,11 @@ import * as readline from 'readline';
 import { checkPolicies } from '../utils/policy';
 import { hyperlink } from '../utils/common';
 import * as semver from 'semver';
+import ora from 'ora';
 
 async function install(packageName: string, version?: string): Promise<void> {
+  const spinner = ora('Loading').start();
+
   const env = process.env.NODE_ENV || 'development';
   const policyFile = `policy.${env}.json`;
 
@@ -26,6 +29,8 @@ async function install(packageName: string, version?: string): Promise<void> {
     fetchTrustScore(packageName, cleanedVersion),
     fetchTrustFacts(packageName, cleanedVersion)
   ]);
+
+  spinner.stop();
 
   if (!trustScore) {
     console.warn(
