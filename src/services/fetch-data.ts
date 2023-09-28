@@ -21,9 +21,7 @@ export async function fetchTrustScore(
   if (!response.ok) throw Error('Failed to fetch trust score');
 
   const data = await response.json();
-
-  console.log(data);
-  
+    
   return typeof data === 'number' ? data : undefined;
 }
 
@@ -31,7 +29,8 @@ export async function fetchTrustScoreMock(
   packageName: string,
   version?: string
 ): Promise<number> {
-  return await Promise.resolve((Math.random() * 100) | 0);
+  await new Promise(resolve => setTimeout(resolve, 300));  // Adding 300ms delay
+  return (Math.random() * 100) | 0;
 }
 
 export async function fetchTrustFacts(

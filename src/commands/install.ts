@@ -1,7 +1,7 @@
 import { execSync } from 'child_process';
 import { displayPackageDetails } from '../utils/table';
 import { getNpmPackageVersion } from '../utils/npm';
-import { fetchTrustScore, fetchTrustScoreMock } from '../services/fetch-data';
+import { fetchTrustFacts, fetchTrustScore, fetchTrustScoreMock } from '../services/fetch-data';
 import { THRESHOLD } from '../constants/global-constants';
 import * as readline from 'readline';
 import { checkPolicies } from '../utils/policy';
@@ -22,7 +22,10 @@ async function install(packageName: string, version?: string): Promise<void> {
   const resolvedVersion = version || getNpmPackageVersion(packageName);
   const cleanedVersion = semver.valid(semver.coerce(resolvedVersion)) || "";
   
-  const trustScore = await fetchTrustScoreMock(packageName, cleanedVersion);
+  const [trustScore, trustFacts] = await Promise.all([
+    fetchTrustScore(packageName, cleanedVersion),
+    fetchTrustFacts(packageName, cleanedVersion)
+  ]);
 
   if (!trustScore) {
     console.warn(
@@ -36,7 +39,7 @@ async function install(packageName: string, version?: string): Promise<void> {
     return;
   }
 
-  await displayPackageDetails(packageName, cleanedVersion, trustScore);
+  await displayPackageDetails(packageName, cleanedVersion, trustScore, trustFacts);
 
   if (trustScore >= THRESHOLD) {
     execSync(`npm install ${packageName}@${cleanedVersion}`, {
@@ -46,7 +49,7 @@ async function install(packageName: string, version?: string): Promise<void> {
   }
 
   console.warn(
-    `\u001b[33mWarning: The trust score for ${packageName}@${cleanedVersion} is low ${trustScore}/100. Check ${hyperlink(
+    `\u001b[33mWarning: The trust score for ${packageName}@${cleanedVersion} is low ${trustScore | 0}/100. Check ${hyperlink(
       `http://${process.env.PORTAL_URL || 'localhost:3000'}`,
       'TrustSECO portal'
     )} for more details.\u001b[0m`

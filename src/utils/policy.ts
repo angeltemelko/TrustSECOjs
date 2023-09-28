@@ -16,7 +16,10 @@ export async function checkPolicies(
       return false;
     }
 
-    if (policies.allowed && !isPackageAllowed) {
+    if (policies.allowed?.length > 0) {
+      if (isPackageAllowed) {
+        return true;
+      }
       console.error(
         `\u001b[33mWarning: The package ${packageName} is not on the allowed list.\u001b[0m`
       );

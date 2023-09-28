@@ -1,14 +1,15 @@
 import { TrustFact } from '../interfaces/api-interfaces';
 import { fetchTrustFacts, fetchTrustFactsMock } from '../services/fetch-data';
+import ora from 'ora';
 
 export async function displayPackageDetails(
   name: string,
   version: string,
-  trustScore: number
+  trustScore: number,
+  trustFacts: TrustFact[]
 ) {
   
-  const trustFacts = await fetchTrustFactsMock(name, version);
-
+  console.log('Package Summary:');
   console.table([
     {
       Name: name,
@@ -16,8 +17,6 @@ export async function displayPackageDetails(
       TrustScore: `${trustScore | 0}/100`,
     },
   ]);
-
-  console.log('\n');
 
   const table: { [key: string]: any } = {};
 
@@ -29,10 +28,13 @@ export async function displayPackageDetails(
     });
 
     const cveVulnerabilities = trustFacts.find(fact => fact.type === 'cve_vulnerabilities');
+   
     if (cveVulnerabilities) {
+      console.log('\nVulnerabilities:');
       console.table(JSON.parse(cveVulnerabilities.value));
     }
 
+    console.log('\nTrust Facts:');
     console.table(table);
 
   } else {
