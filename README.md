@@ -9,9 +9,9 @@ This tool, as a part of the TrustSECO project, aims to enhance the security and 
 
 ## Features
 - Fetch and display the trust score of a package before installing.
+- Get a detailed scan of your project's dependencies and their associated trust scores.
+-  A tree view to visualize a library’s dependencies and their trust scores, providing a  hierarchical perspective.
 - Provides trust score insights with links for detailed analysis.
-- Supports multiple package managers: npm, yarn, pnpm (and more coming soon).
-
 
 ## Prerequisites
 
