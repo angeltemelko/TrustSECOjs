@@ -19,8 +19,8 @@ Node.js and npm.
 For specific package manager support (like Yarn or pnpm), ensure they are installed.
 
 ```bash
-$ git clone [your-repo-link]
-$ cd npm-trust-score-script
+$ git clone https://github.com/angeltemelko/TrustSECOjs.git
+$ cd TrustSECOjs
 $ npm install
 $ npm link
 ```
@@ -62,6 +62,7 @@ The scna command has 2 flags
 If you would like to add custom policies, you can do so by adding policy.{env}.json in your root project, and add a json with 2 properties:
 - Allowed: array of allowed libraries.
 - Blocked: array of blocked libraries.
+
 This method use Permissive Approach,  If both blocked and allowed are empty, you can assume that there are no restrictions. This means the tool will function just like the regular npm, without blocking or alerting on any package.
 If, allowed is empty, and blocked is populated, you can install any package except the blocked one, vice-versa, if the allowed has packages, it will allow only the libraries inside that array. Populating both allowed and blocked has no value.
 ## Contributing
@@ -73,3 +74,5 @@ Contributions to this tool are welcome! Whether it's bug fixes, feature requests
 This tool is provided for informational purposes only and integrates insights from trustSECO. It's important to note that I am neither the maintainer nor a contributor to trustSECO. While this tool aims to offer valuable insights, users are cautioned not to solely rely on its trust scores without additional verification. The trust score might occasionally be inaccurate due to potential errors or bugs. I assume no liability for any vulnerabilities or issues that may arise from packages installed based on this tool's recommendations. Always conduct your own due diligence before integrating any package into your projects.
 
 ## License
+
+[View License](LICENSE.txt)
