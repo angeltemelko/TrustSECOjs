@@ -23,7 +23,7 @@ program
   .command('install <library> [version]')
   .alias('i')
   .description(
-    'Intercept npm install to assess the trustworthiness of a package.'
+    'npm install wrapper to assess the trustworthiness of a package.'
   )
   .addHelpText('after', helpTextInstall)
   .action((library) => {
@@ -69,5 +69,5 @@ program
     const { packageName, version } = parseLibrary(library);
     viewTree(packageName, version);
   });
-
+  
 program.parse(process.argv);

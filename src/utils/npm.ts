@@ -11,3 +11,17 @@ export function getNpmPackageVersion(packageName: string): string {
     return 'unknown';
   }
 }
+
+export function getGithubNameFromNpm(packageName: string): string | undefined {
+  const { execSync } = require('child_process');
+
+  try {
+    const repoUrl = execSync(`npm view ${packageName} repository.url`, {
+      encoding: 'utf8',
+    }).trim();
+    const githubName = repoUrl.match(/github.com[/:](.+?\/(.+?))(?:\.git)?$/);
+    return githubName[2];
+  } catch (error: any) {
+    console.error('Error fetching repository URL:', error.message);
+  }
+}

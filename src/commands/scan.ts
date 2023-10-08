@@ -89,12 +89,15 @@ async function getDependencyTreeWithScores(
   root: DependencyNode
 ): Promise<AsciiTree> {
   const trustScore = await fetchTrustScoreMock(root.name);
+  
   const rootNode = new AsciiTree(
-    `${root.name}@${root.version} ` +
-      (trustScore < THRESHOLD
+    `${root.name}@${root.version} ` + (trustScore !== undefined
+      ? trustScore < THRESHOLD
         ? `\u001b[33mTrustScore:${trustScore}\u001b[0m`
-        : `TrustScore:${trustScore}`)
+        : `TrustScore:${trustScore}`
+      : 'TrustScore:undefined')
   );
+  
 
   if (root.dependencies) {
     for (const child of Object.values(root.dependencies)) {

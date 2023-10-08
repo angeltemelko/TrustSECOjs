@@ -8,7 +8,7 @@ TrustSECO CLI Tool
 The TrustSECO CLI tool offers a comprehensive approach to assessing the trustworthiness of npm packages. It integrates seamlessly with your npm install process and provides a quick scan of your project's dependencies to fetch their trust scores. 
 
 Primary Features:
-- **Install Intercept**: TrustSECO intercepts the npm install process to gauge the trustworthiness of a package before its installation.
+- **Install Wrapper**: TrustSECO wraps the npm install process to gauge the trustworthiness of a package before its installation.
 - **Dependency Scan**: Get a detailed scan of your project's dependencies and their associated trust scores.
 - **Detailed Reporting**: For a more granular understanding, export the scan results to a CSV report.
 - **Dependency Visualization**: A tree view to visualize a library’s dependencies and their trust scores, providing a hierarchical perspective.
@@ -16,7 +16,8 @@ Primary Features:
 - **Library Info**: Fetch detailed information about any specific library.
 
 With TrustSECO, stay assured and maintain the security posture of your projects with confidence.
-`;
+
+Disclaimer: This tool is provided for informational purposes only and integrates insights from TrustSECO. It's important to note that I am neither the maintainer nor a contributor to TrustSECO. While this tool aims to offer valuable insights, users are cautioned not to solely rely on its trust scores without additional verification. The trust score might occasionally be inaccurate due to potential errors or bugs. I assume no liability for any vulnerabilities or issues that may arise from packages installed based on this tool's recommendations. Always conduct your own due diligence before integrating any package into your projects.`;
 
 export const helpTextUninstall = `
 Usage:

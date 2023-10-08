@@ -10,7 +10,6 @@ import * as semver from 'semver';
 import ora from 'ora';
 
 async function install(packageName: string, version?: string): Promise<void> {
-  const spinner = ora('Loading').start();
 
   const env = process.env.NODE_ENV || 'development';
   const policyFile = `policy.${env}.json`;
@@ -21,6 +20,8 @@ async function install(packageName: string, version?: string): Promise<void> {
   ) {
     return;
   }
+
+  const spinner = ora('Loading').start();
 
   const resolvedVersion = version || getNpmPackageVersion(packageName);
   const cleanedVersion = semver.valid(semver.coerce(resolvedVersion)) || "";

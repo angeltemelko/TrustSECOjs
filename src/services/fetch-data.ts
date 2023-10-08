@@ -18,7 +18,7 @@ export async function fetchTrustScore(
 ): Promise<number | undefined> {
   const response = await fetch(`${baseUrlDlt}package/${packageName}/trust-score/${version}`);
 
-  if (!response.ok) throw Error('Failed to fetch trust score');
+  if (!response.ok) return undefined;
 
   const data = await response.json();
     
@@ -28,8 +28,8 @@ export async function fetchTrustScore(
 export async function fetchTrustScoreMock(
   packageName: string,
   version?: string
-): Promise<number> {
-  await new Promise(resolve => setTimeout(resolve, 300));  // Adding 300ms delay
+): Promise<number | undefined> {
+  await new Promise(resolve => setTimeout(resolve, 300)); 
   return (Math.random() * 100) | 0;
 }
 
@@ -40,9 +40,7 @@ export async function fetchTrustFacts(
   const fetchUrl =  `${baseUrlDlt}trust-facts/${packageName}`;
   
   const response = await fetch(fetchUrl);
-  if (!response.ok) {
-    throw new Error('Failed to fetch trust facts');
-  }
+  if (!response.ok) return [];
 
   const data = await response.json() as { facts?: ApiTrustFact[] };
 

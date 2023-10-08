@@ -7,7 +7,7 @@ import * as semver from 'semver';
 import { AsciiTree } from 'oo-ascii-tree';
 import ora from 'ora';
 
-const processedDependencies = new Map<string, number>();
+const processedDependencies = new Map<string, number | undefined>();
 
 const failedChecks: string[] = [];
 
@@ -61,13 +61,15 @@ async function fetchDependencyTree(
   }
 
   const rootNode = new AsciiTree(
-    `${packageName}@${packageDetails.version} ` +
-      (trustScore < THRESHOLD
+    `${packageName}@${packageDetails.version} ` + (trustScore !== undefined
+      ? trustScore < THRESHOLD
         ? `\u001b[33mTrustScore:${trustScore}\u001b[0m`
-        : `TrustScore:${trustScore}`)
+        : `TrustScore:${trustScore}`
+      : 'TrustScore:undefined')
   );
+  
 
-  if (depth < 2) {
+  if (depth < 5) {
     const childNodesPromises = Object.entries(packageDetails.dependencies).map(
       async ([dep, version]: [string, string]) => {
         return fetchDependencyTree(dep, version, depth + 1);

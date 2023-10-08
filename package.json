@@ -29,6 +29,7 @@
   "author": "Angel Temelko",
   "license": "ISC",
   "bin": {
-    "trustseco": "./dist/trustseco-cli.js"
+    "trustseco": "./dist/trustseco-cli.js",
+    "ts": "./dist/trustseco-cli.js"
   }
 }

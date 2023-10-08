@@ -42,11 +42,34 @@ To visualize dependencies and their trust scores
 $ trustseco view-tree <library> [version]
 ```
 
+To evaulate a package
+```bash
+$ trustseco info <library> [version]
+```
+
 To uninstall a package
 ```bash
 $ trustseco uninstall <library>
 ```
 
+## Flags
+
+The scna command has 2 flags 
+- --dependencies where you can scan the transitive dependencies of your installed thrid-party libraries
+- --report generates a csv report of the initial scan
+
+## Policy 
+If you would like to add custom policies, you can do so by adding policy.{env}.json in your root project, and add a json with 2 properties:
+- Allowed: array of allowed libraries.
+- Blocked: array of blocked libraries.
+This method use Permissive Approach,  If both blocked and allowed are empty, you can assume that there are no restrictions. This means the tool will function just like the regular npm, without blocking or alerting on any package.
+If, allowed is empty, and blocked is populated, you can install any package except the blocked one, vice-versa, if the allowed has packages, it will allow only the libraries inside that array. Populating both allowed and blocked has no value.
 ## Contributing
 
 Contributions to this tool are welcome! Whether it's bug fixes, feature requests, or new ideas, your input is valuable to us. Feel free to raise issues or PRs. Remember, it's a part of the larger TrustSECO initiative, and your contributions help improve the security of the open-source ecosystem.
+
+## Disclaimer
+
+This tool is provided for informational purposes only and integrates insights from trustSECO. It's important to note that I am neither the maintainer nor a contributor to trustSECO. While this tool aims to offer valuable insights, users are cautioned not to solely rely on its trust scores without additional verification. The trust score might occasionally be inaccurate due to potential errors or bugs. I assume no liability for any vulnerabilities or issues that may arise from packages installed based on this tool's recommendations. Always conduct your own due diligence before integrating any package into your projects.
+
+## License
