@@ -2,10 +2,10 @@ import {
   fetchTrustScoreMock,
   getTransitiveDependencies,
 } from '../services/fetch-data';
-import { THRESHOLD } from '../constants/global-constants';
 import * as semver from 'semver';
 import { AsciiTree } from 'oo-ascii-tree';
 import ora from 'ora';
+import { formatTrustScoreMessage } from '../utils/common';
 
 const processedDependencies = new Map<string, number | undefined>();
 
@@ -27,32 +27,19 @@ export async function viewTree(
   }
 }
 
-async function fetchDependencyTree(
-  packageName: string,
-  version: string,
-  depth = 0
-): Promise<AsciiTree> {
-  const packageId = `${packageName}@${version}`;
-
+export async function fetchDependencyTree(packageName: string, version: string, depth = 0): Promise<AsciiTree> {
+  const packageId = getPackageId(packageName, version);
+  
   if (processedDependencies.has(packageId)) {
     const trustScore = processedDependencies.get(packageId);
-    return new AsciiTree(
-      `${packageName}@${version} ` +
-        (trustScore! < THRESHOLD
-          ? `\u001b[33mTrustScore:${trustScore}\u001b[0m`
-          : `TrustScore:${trustScore}`)
-    );
+    return new AsciiTree(formatTrustScoreMessage(packageName, version, trustScore));
   }
 
   let packageDetails;
   let trustScore;
 
   try {
-    packageDetails = await getTransitiveDependencies(packageName, version);
-    trustScore = await fetchTrustScoreMock(
-      packageDetails.name,
-      packageDetails.version
-    );
+    [packageDetails, trustScore] = await fetchPackageDetailsAndTrustScore(packageName, version);
     processedDependencies.set(packageId, trustScore);
   } catch (error) {
     console.warn(`Error fetching details for ${packageId}. Skipping...`);
@@ -60,26 +47,35 @@ async function fetchDependencyTree(
     return new AsciiTree(`${packageName}@${version} (error)`);
   }
 
-  const rootNode = new AsciiTree(
-    `${packageName}@${packageDetails.version} ` + (trustScore !== undefined
-      ? trustScore < THRESHOLD
-        ? `\u001b[33mTrustScore:${trustScore}\u001b[0m`
-        : `TrustScore:${trustScore}`
-      : 'TrustScore:undefined')
-  );
-  
+  const rootNode = new AsciiTree(formatTrustScoreMessage(packageName, packageDetails.version, trustScore));
 
   if (depth < 5) {
-    const childNodesPromises = Object.entries(packageDetails.dependencies).map(
-      async ([dep, version]: [string, string]) => {
-        return fetchDependencyTree(dep, version, depth + 1);
-      }
-    );
-
-    const childNodes = await Promise.all(childNodesPromises);
-
+    const childNodes = await fetchChildNodes(packageDetails, depth);
     childNodes.forEach((childNode) => rootNode.add(childNode));
   }
 
   return rootNode;
 }
+
+
+async function fetchPackageDetailsAndTrustScore(packageName: string, version: string): Promise<[any, number | undefined]> {
+  const packageDetails = await getTransitiveDependencies(packageName, version);
+  const trustScore = await fetchTrustScoreMock(packageDetails.name, packageDetails.version);
+  return [packageDetails, trustScore];
+}
+
+async function fetchChildNodes(packageDetails: any, depth: number): Promise<AsciiTree[]> {
+  const childNodesPromises = Object.entries(packageDetails.dependencies).map(
+    async ([dep, version]) => {
+      return fetchDependencyTree(dep, String(version), depth + 1);
+    }
+  );  
+  return await Promise.all(childNodesPromises);
+}
+
+
+function getPackageId(packageName: string, version: string): string {
+  return `${packageName}@${version}`;
+}
+
+

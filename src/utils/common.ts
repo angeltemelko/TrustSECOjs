@@ -1,3 +1,5 @@
+import { THRESHOLD } from '../constants/global-constants';
+
 export interface ParsedLibrary {
   packageName: string;
   version?: string;
@@ -23,4 +25,16 @@ export function parseLibrary(library: string): ParsedLibrary {
     packageName,
     version,
   };
+}
+
+export function formatTrustScoreMessage(
+  packageName: string,
+  version: string,
+  trustScore: number | undefined
+): string {
+  if (trustScore === undefined)
+    return `${packageName}@${version} TrustScore:undefined`;
+  return trustScore < THRESHOLD
+    ? `${packageName}@${version} \u001b[33mTrustScore:${trustScore}\u001b[0m`
+    : `${packageName}@${version} TrustScore:${trustScore}`;
 }

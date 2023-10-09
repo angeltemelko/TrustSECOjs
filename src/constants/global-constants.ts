@@ -15,9 +15,7 @@ Primary Features:
 - **Quick Uninstall**: Quickly uninstall any library directly using the CLI.
 - **Library Info**: Fetch detailed information about any specific library.
 
-With TrustSECO, stay assured and maintain the security posture of your projects with confidence.
-
-Disclaimer: This tool is provided for informational purposes only and integrates insights from TrustSECO. It's important to note that I am neither the maintainer nor a contributor to TrustSECO. While this tool aims to offer valuable insights, users are cautioned not to solely rely on its trust scores without additional verification. The trust score might occasionally be inaccurate due to potential errors or bugs. I assume no liability for any vulnerabilities or issues that may arise from packages installed based on this tool's recommendations. Always conduct your own due diligence before integrating any package into your projects.`;
+With TrustSECO, stay assured and maintain the security posture of your projects with confidence.`;
 
 export const helpTextUninstall = `
 Usage:
