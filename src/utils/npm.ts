@@ -12,6 +12,7 @@ export function getNpmPackageVersion(packageName: string): string {
   }
 }
 
+// TODO: this should be added to every command, in order for the tool to work properly with the current backend implementation
 export function getGithubNameFromNpm(packageName: string): string | undefined {
   const { execSync } = require('child_process');
 

@@ -23,7 +23,7 @@ export async function viewTree(
 
   if (failedChecks.length > 0) {
     console.error(`Failed to check the following packages:`);
-    failedChecks.forEach((pkg) => console.error(`- ${pkg}`));
+    failedChecks.forEach((failedLibraries) => console.error(`- ${failedLibraries}`));
   }
 }
 
