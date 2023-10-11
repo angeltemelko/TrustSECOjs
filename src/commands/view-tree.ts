@@ -5,10 +5,9 @@ import {
 import * as semver from 'semver';
 import { AsciiTree } from 'oo-ascii-tree';
 import ora from 'ora';
-import { formatTrustScoreMessage } from '../utils/common';
+import { formatTrustScoreMessage, getPackageId } from '../utils/common';
 
 const processedDependencies = new Map<string, number | undefined>();
-
 const failedChecks: string[] = [];
 
 export async function viewTree(
@@ -71,11 +70,6 @@ async function fetchChildNodes(packageDetails: any, depth: number): Promise<Asci
     }
   );  
   return await Promise.all(childNodesPromises);
-}
-
-
-function getPackageId(packageName: string, version: string): string {
-  return `${packageName}@${version}`;
 }
 
 

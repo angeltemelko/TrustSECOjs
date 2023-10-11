@@ -1,7 +1,8 @@
 export interface DependencyNode {
   name: string;
   version: string;
-  dependencies?: { [key: string]: DependencyNode };
+  trustScore: number | undefined;
+  dependencies: Record<string, DependencyNode>;
 }
 
 export interface LowTrustLibrary {

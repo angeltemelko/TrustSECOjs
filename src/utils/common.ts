@@ -38,3 +38,8 @@ export function formatTrustScoreMessage(
     ? `${packageName}@${version} \u001b[33mTrustScore:${trustScore}\u001b[0m`
     : `${packageName}@${version} TrustScore:${trustScore}`;
 }
+
+
+export function getPackageId(packageName: string, version: string): string {
+  return `${packageName}@${version}`;
+}

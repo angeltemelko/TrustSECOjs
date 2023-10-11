@@ -6,7 +6,7 @@ import ora from 'ora';
 
 export async function info(
   packageName: string,
-  version: string
+  version?: string
 ): Promise<void> {
   const spinner = ora('Loading').start();
   const resolvedVersion = version || getNpmPackageVersion(packageName);

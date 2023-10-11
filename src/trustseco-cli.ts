@@ -27,7 +27,7 @@ program
   )
   .addHelpText('after', helpTextInstall)
   .action((library) => {
-    const [packageName, version] = library.split('@');
+    const { packageName, version } = parseLibrary(library);
     install(packageName, version);
   });
 
@@ -56,7 +56,7 @@ program
   .description('Retrieve information about a specific library.')
   .addHelpText('after', helpTextInfo)
   .action((library) => {
-    const [packageName, version] = library.split('@');
+    const { packageName, version } = parseLibrary(library);
     info(packageName, version);
   });
 

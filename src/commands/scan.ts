@@ -4,7 +4,11 @@ import { THRESHOLD } from '../constants/global-constants';
 import { writeFileSync } from 'fs';
 import { jsonToCsv } from '../utils/json2csv';
 import { execSync } from 'child_process';
-import { formatTrustScoreMessage, hyperlink } from '../utils/common';
+import {
+  formatTrustScoreMessage,
+  getPackageId,
+  hyperlink,
+} from '../utils/common';
 import {
   DependencyNode,
   LowTrustLibrary,
@@ -14,6 +18,9 @@ import {
 import * as semver from 'semver';
 import { AsciiTree } from 'oo-ascii-tree';
 import ora from 'ora';
+
+const processedDependencies = new Map<string, number | undefined>();
+const memoizedSubtrees = new Map<string, DependencyNode>();
 
 async function scan(options: ScanOptions): Promise<void> {
   const { packageJson, dependencies } = getDependenciesAndPackageJson();
@@ -35,40 +42,69 @@ async function scan(options: ScanOptions): Promise<void> {
   }
 }
 
-
 export function createReport(lowTrustLibraries: LowTrustLibrary[]) {
   const csv = jsonToCsv(lowTrustLibraries, customHeaderMap);
   writeFileSync('trust_scores_report.csv', csv);
-  console.log('\n A report has been created in the root folder of this project named trust_scores_report.csv');
+  console.log(
+    '\n A report has been created in the root folder of this project named trust_scores_report.csv'
+  );
 }
 
-
 export async function scanDependenciesOption(): Promise<void> {
-  const commandOutput = execSync('npm ls --omit=dev --all --json', {
+  const commandOutput = execSync('npm ls -prod --all --json', {
     encoding: 'utf8',
   });
   const parsedOutput = JSON.parse(commandOutput);
-  const rootDependency: DependencyNode = {
-    name: parsedOutput.name,
-    version: parsedOutput.version,
-    dependencies: mapDependencies(parsedOutput.dependencies),
-  };
+
+  const packageId = getPackageId(parsedOutput.name, parsedOutput.version);
+
+  let rootDependency: DependencyNode;
+
+  if (memoizedSubtrees.has(packageId)) {
+    rootDependency = memoizedSubtrees.get(packageId) as DependencyNode;
+  } else {
+    rootDependency = {
+      name: parsedOutput.name,
+      version: parsedOutput.version,
+      trustScore: processedDependencies.has(packageId)
+        ? processedDependencies.get(packageId)
+        : await fetchTrustScoreAndSetPackageId(
+            parsedOutput.name,
+            parsedOutput.version,
+            packageId
+          ),
+      dependencies: await mapDependencies(parsedOutput.dependencies),
+    };
+    memoizedSubtrees.set(packageId, rootDependency);
+  }
+
   const treeWithScores = await getDependencyTreeWithScores(rootDependency);
   treeWithScores.printTree();
+
+  memoizedSubtrees.clear();
 }
 
-export async function scanDefaultOption(packageJson: any, dependencies: { [key: string]: string }): Promise<LowTrustLibrary[]> {
+export async function scanDefaultOption(
+  packageJson: any,
+  dependencies: { [key: string]: string }
+): Promise<LowTrustLibrary[]> {
   if (Object.keys(dependencies).length === 0) {
     console.log('No dependencies found.');
     return [];
   }
 
-  const lowTrustLibraries: LowTrustLibrary[] = await Promise.all(Object.entries(dependencies).map(async ([library, version]) => {
-    const trustScore = await getTrustScoreForDependency(library, version);
-    if (trustScore && trustScore < THRESHOLD) {
-      return { library, version: packageJson.dependencies[library], trustScore };
-    }
-  })).then(results => results.filter(Boolean) as LowTrustLibrary[]);
+  const lowTrustLibraries: LowTrustLibrary[] = await Promise.all(
+    Object.entries(dependencies).map(async ([library, version]) => {
+      const trustScore = await getTrustScoreForDependency(library, version);
+      if (trustScore && trustScore < THRESHOLD) {
+        return {
+          library,
+          version: packageJson.dependencies[library],
+          trustScore,
+        };
+      }
+    })
+  ).then((results) => results.filter(Boolean) as LowTrustLibrary[]);
 
   printLowTrustLibrariesReport(lowTrustLibraries);
 
@@ -81,21 +117,25 @@ function printLowTrustLibrariesReport(lowTrustLibraries: LowTrustLibrary[]) {
     return;
   }
 
-  console.warn('The following libraries have trust scores below the acceptable threshold:');
+  console.warn(
+    'The following libraries have trust scores below the acceptable threshold:'
+  );
   lowTrustLibraries.forEach(({ library, version, trustScore }) => {
     console.warn(formatTrustScoreMessage(library, version, trustScore));
   });
-  console.log(`For more information, visit ${hyperlink('http://localhost:3000', 'TrustSECO-portal')}.`);
+  console.log(
+    `For more information, visit ${hyperlink(
+      'http://localhost:3000',
+      'TrustSECO-portal'
+    )}.`
+  );
 }
-
 
 async function getDependencyTreeWithScores(
   root: DependencyNode
 ): Promise<AsciiTree> {
-  const trustScore = await fetchTrustScoreMock(root.name);
-
   const rootNode = new AsciiTree(
-    formatTrustScoreMessage(root.name, root.version, trustScore)
+    formatTrustScoreMessage(root.name, root.version, root.trustScore)
   );
 
   if (root.dependencies) {
@@ -108,27 +148,51 @@ async function getDependencyTreeWithScores(
   return rootNode;
 }
 
-async function getTrustScoreForDependency(library: string, version: string | undefined): Promise<number | undefined> {
+async function getTrustScoreForDependency(
+  library: string,
+  version: string | undefined
+): Promise<number | undefined> {
   const cleanVersion = semver.valid(semver.coerce(version));
   return await fetchTrustScoreMock(library, cleanVersion ?? '');
 }
 
-function mapDependencies(
-  deps: any
-): { [key: string]: DependencyNode } | undefined {
-  if (!deps) return undefined;
+async function mapDependencies(dependencies: Record<string, DependencyNode>): Promise<Record<string, DependencyNode>> {
+  const mapped: Record<string, DependencyNode> = {};
 
-  let mappedDeps: { [key: string]: DependencyNode } = {};
+  for (const [name, dep] of Object.entries(dependencies || {})) {
+      const packageId = getPackageId(name, dep.version);
 
-  for (const [name, dep] of Object.entries(deps)) {
-    mappedDeps[name] = {
-      name: name,
-      version: (dep as any).version,
-      dependencies: mapDependencies((dep as any).dependencies),
-    };
+      if (memoizedSubtrees.has(packageId)) {
+          mapped[name] = memoizedSubtrees.get(packageId) as DependencyNode;
+          continue;
+      }
+
+      const trustScore = processedDependencies.has(packageId)
+          ? processedDependencies.get(packageId)
+          : await fetchTrustScoreAndSetPackageId(name, dep.version, packageId);
+
+      const node: DependencyNode = {
+          name,
+          version: dep.version,
+          trustScore,
+          dependencies: await mapDependencies(dep.dependencies),
+      };
+
+      memoizedSubtrees.set(packageId, node);
+      mapped[name] = node;
   }
 
-  return mappedDeps;
+  return mapped;
+}
+
+async function fetchTrustScoreAndSetPackageId(
+  packageName: string,
+  version: string,
+  packageId: string
+): Promise<number | undefined> {
+  const trustScore = await fetchTrustScoreMock(packageName, version);
+  processedDependencies.set(packageId, trustScore);
+  return trustScore;
 }
 
 export default scan;

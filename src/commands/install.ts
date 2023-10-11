@@ -1,7 +1,11 @@
 import { execSync } from 'child_process';
 import { displayPackageDetails } from '../utils/table';
 import { getNpmPackageVersion } from '../utils/npm';
-import { fetchTrustFacts, fetchTrustScore, fetchTrustScoreMock } from '../services/fetch-data';
+import {
+  fetchTrustFacts,
+  fetchTrustScore,
+  fetchTrustScoreMock,
+} from '../services/fetch-data';
 import { THRESHOLD } from '../constants/global-constants';
 import * as readline from 'readline';
 import { checkPolicies } from '../utils/policy';
@@ -10,7 +14,6 @@ import * as semver from 'semver';
 import ora from 'ora';
 
 async function install(packageName: string, version?: string): Promise<void> {
-
   const env = process.env.NODE_ENV || 'development';
   const policyFile = `policy.${env}.json`;
 
@@ -24,11 +27,16 @@ async function install(packageName: string, version?: string): Promise<void> {
   const spinner = ora('Loading').start();
 
   const resolvedVersion = version || getNpmPackageVersion(packageName);
-  const cleanedVersion = semver.valid(semver.coerce(resolvedVersion)) || "";
-  
+  if (resolvedVersion === 'unknown') {
+    spinner.stop();
+    console.warn('Package name not found in npm registy');
+    return;
+  }
+  const cleanedVersion = semver.valid(semver.coerce(resolvedVersion)) || '';
+
   const [trustScore, trustFacts] = await Promise.all([
     fetchTrustScore(packageName, cleanedVersion),
-    fetchTrustFacts(packageName, cleanedVersion)
+    fetchTrustFacts(packageName, cleanedVersion),
   ]);
 
   spinner.stop();
@@ -45,7 +53,12 @@ async function install(packageName: string, version?: string): Promise<void> {
     return;
   }
 
-  await displayPackageDetails(packageName, cleanedVersion, trustScore, trustFacts);
+  await displayPackageDetails(
+    packageName,
+    cleanedVersion,
+    trustScore,
+    trustFacts
+  );
 
   if (trustScore >= THRESHOLD) {
     execSync(`npm install ${packageName}@${cleanedVersion}`, {
@@ -55,7 +68,9 @@ async function install(packageName: string, version?: string): Promise<void> {
   }
 
   console.warn(
-    `\u001b[33mWarning: The trust score for ${packageName}@${cleanedVersion} is low ${trustScore | 0}/100. Check ${hyperlink(
+    `\u001b[33mWarning: The trust score for ${packageName}@${cleanedVersion} is low ${
+      trustScore | 0
+    }/100. Check ${hyperlink(
       `http://${process.env.PORTAL_URL || 'localhost:3000'}`,
       'TrustSECO portal'
     )} for more details.\u001b[0m`
