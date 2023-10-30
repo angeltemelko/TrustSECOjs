@@ -1,4 +1,4 @@
-<mxfile host="app.diagrams.net" modified="2023-10-30T12:33:46.566Z" agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/118.0.0.0 Safari/537.36 Edg/118.0.2088.76" etag="7FUF5tL_zDnbqtx21C3s" version="21.7.1" type="github">
+<mxfile host="app.diagrams.net" modified="2023-10-30T15:23:29.802Z" agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/118.0.0.0 Safari/537.36 Edg/118.0.2088.76" etag="yOJRJbjxpXL6dcUCHNQB" version="21.7.1" type="github">
   <diagram name="Page-1" id="bp-OBkmUOG-0lzantgeh">
     <mxGraphModel dx="1678" dy="924" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
       <root>
@@ -88,10 +88,10 @@
         <mxCell id="PqrWQuaT3cwSB4maZePc-36" value="Pre/Post instalation" style="rhombus;whiteSpace=wrap;html=1;" vertex="1" parent="1">
           <mxGeometry x="420" y="200" width="80" height="80" as="geometry" />
         </mxCell>
-        <mxCell id="PqrWQuaT3cwSB4maZePc-38" value="Pre installation" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="1">
+        <mxCell id="PqrWQuaT3cwSB4maZePc-38" value="Pre installation commands" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="1">
           <mxGeometry x="200" y="200" width="100" height="30" as="geometry" />
         </mxCell>
-        <mxCell id="PqrWQuaT3cwSB4maZePc-39" value="Post installation" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="1">
+        <mxCell id="PqrWQuaT3cwSB4maZePc-39" value="Post installation commands" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="1">
           <mxGeometry x="600" y="200" width="100" height="30" as="geometry" />
         </mxCell>
         <mxCell id="PqrWQuaT3cwSB4maZePc-44" value="Install" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
